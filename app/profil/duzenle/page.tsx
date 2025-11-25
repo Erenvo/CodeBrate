@@ -5,14 +5,14 @@ import { useEffect, useState } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/app/AuthContext' // Import yolunu kontrol et
 import { useRouter } from 'next/navigation'
-import { X } from 'lucide-react' // Çarpı ikonu için
+import { X } from 'lucide-react'
 
 export default function ProfilDuzenle() {
   const { user, loading } = useAuth()
   const supabase = createClient()
   const router = useRouter()
 
-  // Form verileri
+  // Form verileri (commitment_level eklendi)
   const [formData, setFormData] = useState({
     username: '',
     university: '',
@@ -21,11 +21,11 @@ export default function ProfilDuzenle() {
     github_link: '',
     linkedin_link: '',
     discord_username: '',
+    commitment_level: '', // YENİ
   })
   
-  // Yetenekler için özel state
-  const [skills, setSkills] = useState<string[]>([]) // Kaydedilecek liste
-  const [currentSkill, setCurrentSkill] = useState('') // O an yazılan yetenek
+  const [skills, setSkills] = useState<string[]>([])
+  const [currentSkill, setCurrentSkill] = useState('')
 
   const [isSaving, setIsSaving] = useState(false)
   const [dataFetched, setDataFetched] = useState(false)
@@ -51,8 +51,8 @@ export default function ProfilDuzenle() {
           github_link: data.github_link || '',
           linkedin_link: data.linkedin_link || '',
           discord_username: data.discord_username || '',
+          commitment_level: data.commitment_level || 'Seçiniz', // YENİ
         })
-        // Yetenekleri de çek (eğer varsa)
         if (data.skills) {
           setSkills(data.skills)
         }
@@ -62,16 +62,15 @@ export default function ProfilDuzenle() {
     if (!loading && user) getProfile()
   }, [user, loading, supabase, dataFetched])
 
-  // Yetenek Ekleme Fonksiyonu
+  // Yetenek Ekleme
   const handleAddSkill = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.preventDefault() // Sayfanın yenilenmesini engelle
+    e.preventDefault()
     if (currentSkill.trim() && !skills.includes(currentSkill.trim())) {
-      setSkills([...skills, currentSkill.trim()]) // Listeye ekle
-      setCurrentSkill('') // Kutuyu temizle
+      setSkills([...skills, currentSkill.trim()])
+      setCurrentSkill('')
     }
   }
 
-  // Yetenek Silme Fonksiyonu
   const handleRemoveSkill = (skillToRemove: string) => {
     setSkills(skills.filter((skill) => skill !== skillToRemove))
   }
@@ -92,7 +91,8 @@ export default function ProfilDuzenle() {
         github_link: formData.github_link,
         linkedin_link: formData.linkedin_link,
         discord_username: formData.discord_username,
-        skills: skills, // Yetenek dizisini kaydet
+        commitment_level: formData.commitment_level, // YENİ
+        skills: skills,
         updated_at: new Date().toISOString(),
       })
       .eq('id', user?.id as string)
@@ -126,7 +126,7 @@ export default function ProfilDuzenle() {
             />
           </div>
 
-          {/* YETENEKLER (YENİ) */}
+          {/* Yetenekler */}
           <div>
             <label className="block text-sm font-medium text-gray-400 mb-1">Yetenekler (Skills)</label>
             <div className="flex gap-2 mb-3">
@@ -134,6 +134,7 @@ export default function ProfilDuzenle() {
                 type="text"
                 value={currentSkill}
                 onChange={(e) => setCurrentSkill(e.target.value)}
+                onKeyDown={(e) => { if (e.key === 'Enter') { e.preventDefault(); handleAddSkill(e as any); } }}
                 placeholder="Örn: React, Python, Figma"
                 className="flex-1 rounded-md bg-gray-900 border border-gray-700 px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
@@ -144,22 +145,43 @@ export default function ProfilDuzenle() {
                 Ekle
               </button>
             </div>
-            {/* Eklenen Yetenekler Listesi */}
             <div className="flex flex-wrap gap-2">
               {skills.map((skill, index) => (
                 <span key={index} className="inline-flex items-center gap-1 px-3 py-1 rounded-full text-sm bg-indigo-900/50 text-indigo-300 border border-indigo-700">
                   {skill}
-                  <button
-                    type="button"
-                    onClick={() => handleRemoveSkill(skill)}
-                    className="hover:text-white focus:outline-none"
-                  >
-                    <X size={14} />
-                  </button>
+                  <button type="button" onClick={() => handleRemoveSkill(skill)} className="hover:text-white focus:outline-none ml-1"><X size={14} /></button>
                 </span>
               ))}
             </div>
           </div>
+
+          {/* Hakkımda */}
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Hakkımda</label>
+            <textarea
+              rows={4}
+              value={formData.bio}
+              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
+              className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500"
+            />
+          </div>
+
+          {/* --- YENİ: TAAHHÜT SEVİYESİ --- */}
+          <div>
+            <label className="block text-sm font-medium text-gray-400 mb-1">Haftalık Zaman Ayırma (Taahhüt)</label>
+            <select
+              value={formData.commitment_level}
+              onChange={(e) => setFormData({ ...formData, commitment_level: e.target.value })}
+              className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 text-white"
+            >
+              <option value="Seçiniz" disabled>Seçiniz</option>
+              <option value="Haftada 0-5 Saat">Haftada 0-5 Saat (Yoğunum)</option>
+              <option value="Haftada 5-10 Saat">Haftada 5-10 Saat (Ortalama)</option>
+              <option value="Haftada 10-20 Saat">Haftada 10-20 Saat (Ciddiyim)</option>
+              <option value="Haftada 20+ Saat">Haftada 20+ Saat (Full Focus)</option>
+            </select>
+          </div>
+          {/* ------------------------------ */}
 
           {/* Üniversite & Bölüm */}
           <div className="grid grid-cols-1 gap-6 sm:grid-cols-2">
@@ -181,17 +203,6 @@ export default function ProfilDuzenle() {
                 className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500"
               />
             </div>
-          </div>
-
-          {/* Hakkımda */}
-          <div>
-            <label className="block text-sm font-medium text-gray-400 mb-1">Hakkımda</label>
-            <textarea
-              rows={4}
-              value={formData.bio}
-              onChange={(e) => setFormData({ ...formData, bio: e.target.value })}
-              className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500"
-            />
           </div>
 
           {/* Sosyal Medya */}
