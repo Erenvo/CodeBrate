@@ -1,9 +1,10 @@
 import React from 'react'
-import HeroSection from '@/app/components/HeroSection'
-import FeaturesSection from '@/app/components/FeaturesSection'
-import ProjectsSection from '@/app/components/ProjectsSection'
-import TalentPoolSection from '@/app/components/TalentPoolSection'
-import CtaSection from '@/app/components/CtaSection'
+import Navbar from '@/app/components/common/Navbar'
+import HeroSection from '@/app/components/home/HeroSection'
+import FeaturesSection from '@/app/components/home/FeaturesSection'
+import ProjectsSection from '@/app/components/home/ProjectsSection'
+import TalentPoolSection from '@/app/components/home/TalentPoolSection'
+import CtaSection from '@/app/components/home/CtaSection'
 
 // Örnek proje verisi (tasarım dosyasından)
 const sampleProjects = [
