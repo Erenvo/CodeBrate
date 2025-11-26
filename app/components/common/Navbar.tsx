@@ -18,7 +18,7 @@ export default function Navbar() {
           </div>
           <div>
             <h1 className="text-lg font-semibold text-white">
-              Üniversite Partner Ağı
+              CodaBrate
             </h1>
             <p className="text-xs text-gray-400">
               Projeni paylaş, takımını bul.
