@@ -1,12 +1,12 @@
-// components/Navbar.tsx
+// app/components/common/Navbar.tsx
 'use client'
 
 import Link from 'next/link'
-import { useAuth } from '@/app/AuthContext' // Az önce oluşturduğun AuthContext'i çağırıyoruz
-import { User, LogOut } from 'lucide-react'
+import { useAuth } from '@/app/AuthContext'
+import { User, LogOut, LayoutDashboard } from 'lucide-react' // Dashboard ikonu eklendi
 
 export default function Navbar() {
-  const { user, signOut } = useAuth() // Kullanıcı giriş yapmış mı? Bilgiyi çekiyoruz
+  const { user, signOut } = useAuth()
 
   return (
     <header className="border-b border-gray-800 bg-gray-950 sticky top-0 z-50">
@@ -26,7 +26,7 @@ export default function Navbar() {
           </div>
         </Link>
 
-        {/* ORTA MENÜ (Sadece masaüstünde görünür) */}
+        {/* ORTA MENÜ */}
         <nav className="hidden md:flex items-center gap-6 text-sm text-gray-300">
           <Link href="/projeler" className="hover:text-indigo-400">
             Projeler
@@ -39,11 +39,21 @@ export default function Navbar() {
           </Link>
         </nav>
 
-        {/* SAĞ TARAF (Giriş Durumuna Göre Değişir) */}
+        {/* SAĞ TARAF (Giriş Durumuna Göre) */}
         <div className="flex items-center gap-3">
           {user ? (
-            // DURUM 1: KULLANICI GİRİŞ YAPMIŞSA
+            // KULLANICI GİRİŞ YAPMIŞSA
             <>
+              {/* 👇 YENİ EKLENEN: PANELİM BUTONU 👇 */}
+              <Link
+                href="/dashboard"
+                className="hidden sm:inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white mr-2 bg-gray-800 px-3 py-2 rounded-md border border-gray-700 hover:border-gray-500 transition"
+              >
+                <LayoutDashboard size={16} />
+                <span>Panelim</span>
+              </Link>
+              {/* 👆 --------------------------- 👆 */}
+
               <Link
                 href="/profil/duzenle"
                 className="hidden sm:inline-flex items-center gap-2 text-sm text-gray-300 hover:text-white"
@@ -61,7 +71,7 @@ export default function Navbar() {
               </button>
             </>
           ) : (
-            // DURUM 2: KULLANICI GİRİŞ YAPMAMIŞSA (Misafir)
+            // MİSAFİR İSE
             <>
               <Link
                 href="/register"
