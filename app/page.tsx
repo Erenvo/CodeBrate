@@ -34,12 +34,12 @@ const sampleProjects = [
 export default function LandingPage() {
   return (
     // <main> etiketi ile başlıyor, Navbar ve Footer layout'tan gelecek
-    <main>
-      <HeroSection projects={sampleProjects} />
-      <FeaturesSection />
-      <ProjectsSection projects={sampleProjects} />
-      <TalentPoolSection />
-      <CtaSection />
-    </main>
+    <main className="min-h-screen bg-gray-900 text-gray-100">
+    <HeroSection projects={sampleProjects} />
+    <FeaturesSection />
+    <ProjectsSection projects={sampleProjects} />
+    <TalentPoolSection />
+    <CtaSection />
+  </main>
   )
 }

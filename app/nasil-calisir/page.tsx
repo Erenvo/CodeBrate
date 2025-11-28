@@ -13,7 +13,7 @@ const steps = [
   {
     title: '2. Projenizi Tanımlayın',
     description:
-      'İhtiyacınızı açıkça yazın; yapay zekâ destekli brief ile eksikleri biz tamamlayalım.',
+      'İhtiyacınızı açıkça yazın, size uygun ekip arkadaşlarını bulun.',
     accent: 'bg-gray-700/50 text-indigo-300',
   },
   {

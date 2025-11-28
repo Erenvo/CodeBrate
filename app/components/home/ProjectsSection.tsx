@@ -1,4 +1,6 @@
 import React from 'react'
+import Link from 'next/link'
+
 
 type Project = {
   id: string
@@ -47,9 +49,12 @@ export default function ProjectsSection({ projects }: ProjectsSectionProps) {
                   </span>
                 ))}
               </div>
-              <button className="rounded-md border border-indigo-500 px-3 py-1 text-sm text-indigo-400 hover:bg-gray-700">
+              <Link
+                href={`/projeler/${p.id}`}
+                className="rounded-md border border-indigo-500 px-3 py-1 text-sm text-indigo-400 hover:bg-gray-700"
+              >
                 İlgileniyorum
-              </button>
+              </Link>
             </div>
           </article>
         ))}

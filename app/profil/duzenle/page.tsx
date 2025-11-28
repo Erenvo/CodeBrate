@@ -198,7 +198,7 @@ export default function ProfilDuzenle() {
 
             {/* Diğer Alanlar */}
             <div>
-              <label className="block text-sm font-medium text-gray-400 mb-1">Taahhüt</label>
+              <label className="block text-sm font-medium text-gray-400 mb-1">Haftalık Projeye Ayırabileceğiniz Saat</label>
               <select value={formData.commitment_level} onChange={(e) => setFormData({ ...formData, commitment_level: e.target.value })} className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-2 focus:ring-indigo-500 focus:border-indigo-500 outline-none text-white">
                 <option value="" disabled>Seçiniz</option>
                 <option value="Haftada 0-5 Saat">Haftada 0-5 Saat</option>
