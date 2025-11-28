@@ -17,7 +17,7 @@ type ProjectType = {
   category_tags: string[] | null
   created_at: string
   owner_id: string
-  status: string // Status verisi
+  status: string | null
   profiles: {
     id: string
     username: string
@@ -40,7 +40,7 @@ export default function ProjeDetay() {
   const router = useRouter()
 
   const [project, setProject] = useState<ProjectType | null>(null)
-  const [myApplication, setMyApplication] = useState<ApplicationType | null>(null)
+  const [myApplication, setMyApplication] = useState<ApplicationType | null>(null) // Başvuru durumum
   
   const [loading, setLoading] = useState(true)
   const [applying, setApplying] = useState(false)
@@ -63,7 +63,7 @@ export default function ProjeDetay() {
       } else {
         setProject(projectData as any)
 
-        // 2. Başvuru Durumunu Kontrol Et
+        // 2. (YENİ) Eğer kullanıcı giriş yapmışsa, Başvuru Durumunu Kontrol Et
         if (user) {
           const { data: appData } = await supabase
             .from('project_applications')
@@ -83,13 +83,14 @@ export default function ProjeDetay() {
     if (id) fetchData()
   }, [id, user, supabase])
 
-  // --- BAŞVURU YAPMA ---
+  // --- BAŞVURU YAPMA FONKSİYONU (YENİ) ---
   const handleApply = async () => {
     if (!user) {
       alert('Başvuru yapmak için giriş yapmalısın.')
       return
     }
     
+    // Kullanıcıdan kısa bir mesaj alalım
     const message = window.prompt("Projeye katılmak istediğine dair kısa bir not bırak (Opsiyonel):")
     
     setApplying(true)
@@ -104,14 +105,14 @@ export default function ProjeDetay() {
     if (error) {
       alert('Hata: ' + error.message)
     } else {
-      alert('Başvurun gönderildi! Proje sahibi onaylayınca bildirim alacaksın.')
-      setMyApplication({ id: 'temp', status: 'pending' })
+      alert('Başvurun gönderildi! 🎉')
+      setMyApplication({ id: 'temp', status: 'pending' }) // Arayüzü güncelle
       router.refresh()
     }
     setApplying(false)
   }
 
-  // --- SİLME ---
+  // Silme Fonksiyonu
   const handleDelete = async () => {
     if (!window.confirm('Bu projeyi silmek istediğine emin misin?')) return
     setIsDeleting(true)
@@ -128,15 +129,13 @@ export default function ProjeDetay() {
   if (error || !project) return <div className="min-h-screen flex flex-col items-center justify-center text-gray-400 gap-4">{error || 'Proje bulunamadı.'} <Link href="/projeler" className="text-indigo-400 hover:underline">Geri Dön</Link></div>
 
   const isOwner = user?.id === project.owner_id
+  // Kasa Kilidi: Sahibiysen VEYA Başvurun Onaylandıysa açılır
   const isSafeUnlocked = isOwner || myApplication?.status === 'approved'
 
-  // 🔥🔥🔥 ÇÖZÜM BURADA 🔥🔥🔥
-  // Status verisini al, küçük harfe çevir. Eğer yoksa (null ise) boş string yap.
-  const status = project.status ? project.status.toLowerCase() : ''
-  
-  // MANTIK: Eğer proje 'completed' (tamamlandı) veya 'closed' (kapalı) DEĞİLSE -> AKTİFTİR.
-  // Yani null (boş) olsa bile aktif sayılır.
-  const isProjectActive = status !== 'completed' && status !== 'closed'
+  // Proje Aktif mi?
+  let rawStatus = project.status ? project.status.toLowerCase().trim() : 'active'
+  const normalizedStatus = (rawStatus === 'active' || rawStatus === 'yayinda' || rawStatus === '') ? 'active' : rawStatus
+  const isProjectActive = normalizedStatus !== 'completed' && normalizedStatus !== 'closed'
 
   return (
     <div className="min-h-screen bg-gray-900 text-gray-100 py-12 px-4">
@@ -151,12 +150,10 @@ export default function ProjeDetay() {
           <div className="absolute top-0 right-0 w-64 h-64 bg-indigo-500/10 rounded-full blur-3xl -mr-16 -mt-16 pointer-events-none"></div>
           <div className="relative z-10">
             
-            {/* Durum Etiketi */}
             <div className="mb-4">
-              {/* Null veya Active ise YAYINDA göster */}
-              {(status === 'active' || !status) && <span className="inline-flex items-center gap-2 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/20 font-medium">🟢 Yayında (Aktif)</span>}
-              {status === 'completed' && <span className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-sm border border-blue-500/20 font-medium">🏁 Proje Tamamlandı</span>}
-              {status === 'closed' && <span className="inline-flex items-center gap-2 bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm border border-red-500/20 font-medium">🔴 Alım Kapalı</span>}
+              {normalizedStatus === 'active' && <span className="inline-flex items-center gap-2 bg-green-500/10 text-green-400 px-3 py-1 rounded-full text-sm border border-green-500/20 font-medium">🟢 Yayında (Aktif)</span>}
+              {normalizedStatus === 'completed' && <span className="inline-flex items-center gap-2 bg-blue-500/10 text-blue-400 px-3 py-1 rounded-full text-sm border border-blue-500/20 font-medium">🏁 Proje Tamamlandı</span>}
+              {normalizedStatus === 'closed' && <span className="inline-flex items-center gap-2 bg-red-500/10 text-red-400 px-3 py-1 rounded-full text-sm border border-red-500/20 font-medium">🔴 Alım Kapalı</span>}
             </div>
 
             <h1 className="text-3xl md:text-4xl font-bold text-white mb-4">{project.title}</h1>
@@ -228,14 +225,13 @@ export default function ProjeDetay() {
               {isOwner ? (
                 <div className="space-y-3">
                   <h3 className="text-lg font-semibold text-white mb-2">Proje Yönetimi</h3>
-                  <p className="text-sm text-gray-400 mb-4">Bu projenin sahibi sensin.</p>
                   
                   {/* DASHBOARD BUTONU */}
-                  <button className="w-full bg-gray-700 text-gray-400 cursor-not-allowed py-2 rounded-lg mb-2 border border-gray-600">
-                    Başvuruları Yönet (Yakında)
-                  </button>
+                  <Link href="/dashboard" className="w-full bg-indigo-900/50 text-indigo-300 hover:bg-indigo-900 hover:text-white py-2 rounded-lg mb-2 border border-indigo-700/50 flex items-center justify-center gap-2 transition">
+                    <CheckCircle size={16} /> Başvuruları Yönet
+                  </Link>
 
-                  <Link href={`/projeler/${id}/duzenle`} className="flex items-center justify-center gap-2 w-full bg-indigo-600 hover:bg-indigo-700 text-white py-2 rounded-lg transition">
+                  <Link href={`/projeler/${id}/duzenle`} className="flex items-center justify-center gap-2 w-full bg-gray-700 hover:bg-gray-600 text-white py-2 rounded-lg transition">
                     <Edit size={16} /> Projeyi Düzenle
                   </Link>
                   <button onClick={handleDelete} disabled={isDeleting} className="flex items-center justify-center gap-2 w-full bg-red-900/30 hover:bg-red-900/50 text-red-400 border border-red-900/50 py-2 rounded-lg transition">
@@ -246,11 +242,10 @@ export default function ProjeDetay() {
                 <div className="space-y-4">
                   <h3 className="text-lg font-semibold text-white">İlgileniyor musun?</h3>
                   
-                  {/* Başvuru Butonu */}
+                  {/* Başvuru Durumuna Göre Butonlar */}
                   {!myApplication && (
                     <button 
                       onClick={handleApply}
-                      // MANTIK DÜZELDİ: Aktifse VEYA boşsa (null) buton açılır. Sadece kapalıysa kapanır.
                       disabled={applying || !isProjectActive} 
                       className="w-full bg-indigo-600 hover:bg-indigo-700 text-white font-semibold py-3 rounded-lg transition shadow-lg shadow-indigo-500/20 flex items-center justify-center gap-2 disabled:opacity-50 disabled:cursor-not-allowed"
                     >

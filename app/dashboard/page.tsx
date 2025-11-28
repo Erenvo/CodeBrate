@@ -117,7 +117,10 @@ export default function DashboardPage() {
                   
                   <div className="flex-1">
                     <div className="flex items-center gap-2 mb-1">
-                      <span className="text-white font-medium text-lg">{app.applicant?.username || 'Anonim'}</span>
+                      {/* İSMİ LİNKE ÇEVİRİYORUZ */}
+                      <Link href={`/profil/${app.applicant?.id}`} className="text-white font-medium text-lg hover:text-indigo-400 transition underline-offset-4 hover:underline">
+                        {app.applicant?.username || 'Anonim'}
+                      </Link>
                       <span className="text-gray-500 text-sm">• {app.applicant?.university}</span>
                     </div>
                     <p className="text-gray-400 text-sm mb-2">
