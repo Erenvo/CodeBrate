@@ -9,11 +9,14 @@ import Link from 'next/link'
 export default function RegisterPage() {
   const [email, setEmail] = useState('')
   const [password, setPassword] = useState('')
+  const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('') 
   const [username, setUsername] = useState('') 
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
+  const [showPassword, setShowPassword] = useState(false)
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const supabase = createClient()
 
   const validateEmailDomain = (email: string) => {
@@ -28,6 +31,12 @@ export default function RegisterPage() {
 
     if (!validateEmailDomain(email)) {
       setError('Kayıt olmak için .edu.tr uzantılı bir üniversite e-postası kullanmalısınız.')
+      setLoading(false)
+      return
+    }
+
+    if (password !== confirmPassword) {
+      setError('Şifreler eşleşmiyor. Lütfen aynı şifreyi gir.')
       setLoading(false)
       return
     }
@@ -62,6 +71,7 @@ export default function RegisterPage() {
       setMessage('Kayıt başarılı! Lütfen e-postanızı kontrol ederek hesabınızı onaylayın.')
       setEmail('')
       setPassword('')
+      setConfirmPassword('')
       setUsername('')
       setFullName('')
     }
@@ -80,7 +90,7 @@ export default function RegisterPage() {
         <form onSubmit={handleRegister} className="flex flex-col gap-4">
           <input
             type="text"
-            placeholder="Ad Soyad"  // <-- SADECE BU KALDI
+            placeholder="Ad Soyad"
             value={fullName}
             onChange={(e) => setFullName(e.target.value)}
             required
@@ -88,7 +98,7 @@ export default function RegisterPage() {
           />
           <input
             type="text"
-            placeholder="Kullanıcı Adı" // <-- SADECE BU KALDI
+            placeholder="Kullanıcı Adı"
             value={username}
             onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} 
             required
@@ -102,14 +112,62 @@ export default function RegisterPage() {
             required
             className="rounded-md bg-gray-900 border border-gray-700 px-4 py-3 text-gray-200 focus:ring-indigo-500 outline-none"
           />
-          <input
-            type="password"
-            placeholder="Şifre oluştur"
-            value={password}
-            onChange={(e) => setPassword(e.target.value)}
-            required
-            className="rounded-md bg-gray-900 border border-gray-700 px-4 py-3 text-gray-200 focus:ring-indigo-500 outline-none"
-          />
+          
+          {/* Şifre Alanı */}
+          <div className="relative">
+            <input
+              type={showPassword ? 'text' : 'password'}
+              placeholder="Şifre oluştur"
+              value={password}
+              onChange={(e) => setPassword(e.target.value)}
+              required
+              className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-3 pr-10 text-gray-200 focus:ring-indigo-500 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowPassword(!showPassword)}
+              className="absolute right-3 top-3 text-gray-400 hover:text-gray-300 transition"
+            >
+              {showPassword ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-14-14zM10 4.5a7 7 0 016.338 10.355l-1.413-1.413A5 5 0 109.999 5.5H10a1 1 0 000-2zm3.894 10.445l-1.414-1.414A3 3 0 106.5 9.5a1 1 0 01-2 0 5 5 0 118.106 5.445z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          </div>
+
+          {/* Şifre Onay Alanı */}
+          <div className="relative">
+            <input
+              type={showConfirmPassword ? 'text' : 'password'}
+              placeholder="Şifreyi onayla"
+              value={confirmPassword}
+              onChange={(e) => setConfirmPassword(e.target.value)}
+              required
+              className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-3 pr-10 text-gray-200 focus:ring-indigo-500 outline-none"
+            />
+            <button
+              type="button"
+              onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+              className="absolute right-3 top-3 text-gray-400 hover:text-gray-300 transition"
+            >
+              {showConfirmPassword ? (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path d="M10 12a2 2 0 100-4 2 2 0 000 4z" />
+                  <path fillRule="evenodd" d="M.458 10C1.732 5.943 5.522 3 10 3s8.268 2.943 9.542 7c-1.274 4.057-5.064 7-9.542 7S1.732 14.057.458 10zM14 10a4 4 0 11-8 0 4 4 0 018 0z" clipRule="evenodd" />
+                </svg>
+              ) : (
+                <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                  <path fillRule="evenodd" d="M3.707 2.293a1 1 0 00-1.414 1.414l14 14a1 1 0 001.414-1.414l-14-14zM10 4.5a7 7 0 016.338 10.355l-1.413-1.413A5 5 0 109.999 5.5H10a1 1 0 000-2zm3.894 10.445l-1.414-1.414A3 3 0 106.5 9.5a1 1 0 01-2 0 5 5 0 118.106 5.445z" clipRule="evenodd" />
+                </svg>
+              )}
+            </button>
+          </div>
           
           <button
             type="submit"
