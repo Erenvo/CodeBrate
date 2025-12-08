@@ -5,7 +5,7 @@ import { useParams, useRouter } from 'next/navigation'
 import { createClient } from '@/lib/supabase/client'
 import { useAuth } from '@/app/AuthContext'
 import Link from 'next/link'
-import { User, Calendar, MapPin, Lock, Globe, ArrowLeft, CheckCircle, Trash2, Edit, Send, Clock, XCircle } from 'lucide-react'
+import { User, Calendar, MapPin, Lock, Globe, ArrowLeft, CheckCircle, Trash2, Edit, Send, Clock, XCircle, MessageSquare } from 'lucide-react'
 
 // Tip Tanımları
 type ProjectType = {
@@ -244,8 +244,24 @@ export default function ProjeDetay() {
                     </button>
                   )}
                   {myApplication?.status === 'pending' && <div className="w-full bg-yellow-500/10 text-yellow-400 border border-yellow-500/20 py-3 rounded-lg text-center font-medium flex items-center justify-center gap-2"><Clock size={18} /> Başvuru Beklemede</div>}
-                  {myApplication?.status === 'approved' && <div className="w-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-3 rounded-lg text-center font-medium flex items-center justify-center gap-2"><CheckCircle size={18} /> Başvurun Onaylandı!</div>}
-                  {myApplication?.status === 'rejected' && <div className="w-full bg-red-500/10 text-red-400 border border-red-500/20 py-3 rounded-lg text-center font-medium flex items-center justify-center gap-2"><XCircle size={18} /> Başvuru Reddedildi</div>}
+                  {/* --- BURAYI DEĞİŞTİRİYORUZ --- */}
+                  {myApplication?.status === 'approved' && (
+                    <div className="space-y-3">
+                      {/* Mevcut Onay Kutusu */}
+                      <div className="w-full bg-emerald-500/10 text-emerald-400 border border-emerald-500/20 py-3 rounded-lg text-center font-medium flex items-center justify-center gap-2">
+                        <CheckCircle size={18} /> Başvurun Onaylandı!
+                      </div>
+                      
+                      {/* 👇 YENİ EKLENEN SOHBET BUTONU 👇 */}
+                      <Link 
+                        href={`/mesajlar/${project.owner_id}?projectId=${project.id}`} 
+                        className="w-full bg-indigo-600 hover:bg-indigo-700 text-white py-3 rounded-lg text-center font-medium flex items-center justify-center gap-2 transition shadow-lg shadow-indigo-500/20"
+                      >
+                        <MessageSquare size={18} /> Proje Sahibiyle Konuş
+                      </Link>
+                    </div>
+                  )}
+                  {/* ------------------------------- */}
                   
                   {/* Bilgilendirme yazısı - Kasa açık değilse göster */}
                   {!isSafeUnlocked && (
