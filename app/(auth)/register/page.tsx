@@ -1,7 +1,7 @@
 // app/(auth)/register/page.tsx
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { createClient } from '@/lib/supabase/client'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
@@ -11,13 +11,38 @@ export default function RegisterPage() {
   const [password, setPassword] = useState('')
   const [confirmPassword, setConfirmPassword] = useState('')
   const [fullName, setFullName] = useState('') 
-  const [username, setUsername] = useState('') 
+  const [username, setUsername] = useState('')
+  const [usernameStatus, setUsernameStatus] = useState<'available' | 'taken' | null>(null)
+  const [checkingUsername, setCheckingUsername] = useState(false)
   const [message, setMessage] = useState<string | null>(null)
   const [error, setError] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [showPassword, setShowPassword] = useState(false)
   const [showConfirmPassword, setShowConfirmPassword] = useState(false)
   const supabase = createClient()
+
+  // Username kontrolü
+  useEffect(() => {
+    const checkUsername = async () => {
+      if (!username || username.length < 3) {
+        setUsernameStatus(null)
+        return
+      }
+
+      setCheckingUsername(true)
+      const { data: existingUser } = await supabase
+        .from('profiles')
+        .select('username')
+        .eq('username', username.toLowerCase())
+        .single()
+
+      setUsernameStatus(existingUser ? 'taken' : 'available')
+      setCheckingUsername(false)
+    }
+
+    const debounceTimer = setTimeout(checkUsername, 500)
+    return () => clearTimeout(debounceTimer)
+  }, [username])
 
   const validateEmailDomain = (email: string) => {
     return email.endsWith('.edu.tr')
@@ -41,14 +66,7 @@ export default function RegisterPage() {
       return
     }
 
-    // Kullanıcı adı kontrolü
-    const { data: existingUser } = await supabase
-      .from('profiles')
-      .select('username')
-      .eq('username', username)
-      .single()
-
-    if (existingUser) {
+    if (usernameStatus === 'taken') {
       setError('Bu kullanıcı adı maalesef alınmış. Lütfen başka bir tane seç.')
       setLoading(false)
       return
@@ -59,7 +77,7 @@ export default function RegisterPage() {
       password,
       options: {
         data: {
-          username: username, 
+          username: username.toLowerCase(), 
           full_name: fullName,
         },
       },
@@ -74,6 +92,7 @@ export default function RegisterPage() {
       setConfirmPassword('')
       setUsername('')
       setFullName('')
+      setUsernameStatus(null)
     }
     setLoading(false)
   }
@@ -96,14 +115,49 @@ export default function RegisterPage() {
             required
             className="rounded-md bg-gray-900 border border-gray-700 px-4 py-3 text-gray-200 focus:ring-indigo-500 outline-none"
           />
-          <input
-            type="text"
-            placeholder="Kullanıcı Adı"
-            value={username}
-            onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} 
-            required
-            className="rounded-md bg-gray-900 border border-gray-700 px-4 py-3 text-gray-200 focus:ring-indigo-500 outline-none"
-          />
+          
+          {/* Kullanıcı Adı Alanı */}
+          <div>
+            <div className="relative">
+              <input
+                type="text"
+                placeholder="Kullanıcı Adı"
+                value={username}
+                onChange={(e) => setUsername(e.target.value.toLowerCase().replace(/\s/g, ''))} 
+                required
+                className="w-full rounded-md bg-gray-900 border border-gray-700 px-4 py-3 pr-10 text-gray-200 focus:ring-indigo-500 outline-none"
+              />
+              {checkingUsername && (
+                <div className="absolute right-3 top-3 text-gray-400">
+                  <svg className="animate-spin h-5 w-5" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                    <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                    <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                  </svg>
+                </div>
+              )}
+              {!checkingUsername && usernameStatus === 'available' && (
+                <div className="absolute right-3 top-3 text-green-400">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zm3.707-9.293a1 1 0 00-1.414-1.414L9 10.586 7.707 9.293a1 1 0 00-1.414 1.414l2 2a1 1 0 001.414 0l4-4z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+              {!checkingUsername && usernameStatus === 'taken' && (
+                <div className="absolute right-3 top-3 text-red-400">
+                  <svg className="w-5 h-5" fill="currentColor" viewBox="0 0 20 20">
+                    <path fillRule="evenodd" d="M10 18a8 8 0 100-16 8 8 0 000 16zM8.707 7.293a1 1 0 00-1.414 1.414L8.586 10l-1.293 1.293a1 1 0 101.414 1.414L10 11.414l1.293 1.293a1 1 0 001.414-1.414L11.414 10l1.293-1.293a1 1 0 00-1.414-1.414L10 8.586 8.707 7.293z" clipRule="evenodd" />
+                  </svg>
+                </div>
+              )}
+            </div>
+            {usernameStatus === 'available' && (
+              <p className="text-sm text-green-400 mt-1">✓ Bu kullanıcı adı kullanılabilir</p>
+            )}
+            {usernameStatus === 'taken' && (
+              <p className="text-sm text-red-400 mt-1">✗ Bu kullanıcı adı alınmış</p>
+            )}
+          </div>
+
           <input
             type="email"
             placeholder="Üniversite e-postan (@edu.tr)"
@@ -171,7 +225,7 @@ export default function RegisterPage() {
           
           <button
             type="submit"
-            disabled={loading}
+            disabled={loading || usernameStatus === 'taken'}
             className="rounded-md bg-indigo-600 px-4 py-3 text-white font-medium hover:opacity-90 transition disabled:opacity-50"
           >
             {loading ? 'Kontrol Ediliyor...' : 'Kayıt Ol'}
